@@ -1,26 +1,62 @@
-import { Row, Col } from 'react-bootstrap'
-import { BsBookmark } from 'react-icons/bs'
+import { Row, Col, Button } from 'react-bootstrap'
+import { BsBookmark, BsFillBookmarkFill, BsTrash } from 'react-icons/bs'
+import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 
-const Job = ({ data }) => (
-  <Row
-    className="mx-0 mt-3 p-3"
-    style={{ border: '1px solid #00000033', borderRadius: 4 }}
-  >
-    <Col xs={1}>
-      <Link to="/favourites" className="btn btn-primary">
-        <BsBookmark />
-      </Link>
-    </Col>
-    <Col xs={3}>
-      <Link to={`/${data.company_name}`}>{data.company_name}</Link>
-    </Col>
-    <Col xs={8}>
-      <a href={data.url} target="_blank" rel="noreferrer">
-        {data.title}
-      </a>
-    </Col>
-  </Row>
-)
+const Job = ({ data, showRemove, showSave }) => {
+  const dispatch = useDispatch()
+  const favourites = useSelector((state) => state.favouriteJob.content)
+  const isFavorited = favourites.findIndex((fav) => fav._id === data._id) !== -1
+
+  return (
+    <Row
+      className="mx-0 mt-3 p-3"
+      style={{ border: '1px solid #00000033', borderRadius: 4 }}
+    >
+      {showSave && (
+        <Col xs={1}>
+          <Button
+            to="/favourites"
+            className={
+              isFavorited
+                ? 'btn btn-warning'
+                : 'btn bg-light btn-outline-warning'
+            }
+            onClick={(e) => {
+              e.preventDefault()
+              if (!isFavorited) {
+                dispatch({ type: 'ADD_TO_FAVOURITE', payload: data })
+              } else {
+                dispatch({ type: 'REMOVE_FAVOURITE', payload: data._id })
+              }
+            }}
+          >
+            {isFavorited ? <BsFillBookmarkFill /> : <BsBookmark />}
+          </Button>
+        </Col>
+      )}
+      <Col xs={3}>
+        <Link to={`/${data.company_name}`}>{data.company_name}</Link>
+      </Col>
+      <Col xs={8}>
+        <a href={data.url} target="_blank" rel="noreferrer">
+          {data.title}
+        </a>
+      </Col>
+      {showRemove && (
+        <Col xs={1}>
+          <Button
+            variant="danger"
+            onClick={() =>
+              dispatch({ type: 'REMOVE_FROM_FAVOURITE', payload: data._id })
+            }
+          >
+            <BsTrash />
+          </Button>
+        </Col>
+      )}
+    </Row>
+  )
+}
 
 export default Job
